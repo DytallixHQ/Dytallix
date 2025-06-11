@@ -1,0 +1,46 @@
+[package]
+name = "dytallix-node"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dytallix Team"]
+description = "Post-quantum AI-enhanced cryptocurrency node"
+
+[dependencies]
+# Core Substrate dependencies
+substrate-node-template = { git = "https://github.com/substrate-developer-hub/substrate-node-template", branch = "main" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "master" }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "master" }
+
+# Cryptography
+pqcrypto = "0.16"
+pqcrypto-dilithium = "0.5"
+pqcrypto-kyber = "0.7"
+ring = "0.16"
+
+# Networking and serialization
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Logging and error handling
+log = "0.4"
+env_logger = "0.10"
+anyhow = "1.0"
+thiserror = "1.0"
+
+# AI service integration
+reqwest = { version = "0.11", features = ["json"] }
+
+[dev-dependencies]
+tokio-test = "0.4"
+
+[features]
+default = ["std"]
+std = []
+runtime-benchmarks = []
+
+[[bin]]
+name = "dytallix-node"
+path = "src/main.rs"

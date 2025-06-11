@@ -1,0 +1,43 @@
+[package]
+name = "dytallix-pqc"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dytallix Team"]
+description = "Post-quantum cryptography implementation for Dytallix"
+
+[dependencies]
+# Post-quantum cryptography
+pqcrypto = "0.16"
+pqcrypto-dilithium = "0.5"
+pqcrypto-kyber = "0.7"
+pqcrypto-sphincs = "0.6"
+
+# Cryptographic utilities
+rand = "0.8"
+zeroize = "1.6"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+log = "0.4"
+
+[dev-dependencies]
+tokio-test = "0.4"
+criterion = "0.5"
+
+[features]
+default = ["dilithium", "kyber"]
+dilithium = []
+kyber = []
+falcon = []
+sphincs = []
+
+[[bench]]
+name = "pqc_benchmarks"
+harness = false
