@@ -251,7 +251,8 @@ We especially welcome contributions in these areas:
 - **GitHub Issues**: Bug reports and feature requests
 - **Pull Requests**: Code contributions
 - **Discussions**: General questions and ideas
-- **Discord**: Real-time chat (if available)
+- **Twitter/X**: [@DytallixHQ](https://twitter.com/DytallixHQ) - Follow for updates
+- **Telegram**: Coming soon
 
 ## 📜 Code of Conduct
 

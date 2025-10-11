@@ -350,10 +350,9 @@ Apache 2.0 - See [LICENSE](../LICENSE) for details.
 
 ## Support
 
-- **Documentation**: https://docs.dytallix.network
-- **Discord**: https://discord.gg/dytallix
-- **GitHub Issues**: https://github.com/HisMadRealm/dytallix/issues
-- **Twitter**: @DytallixNetwork
+- **GitHub Issues**: https://github.com/DytallixHQ/Dytallix/issues
+- **Twitter/X**: [@DytallixHQ](https://twitter.com/DytallixHQ)
+- **Telegram**: Coming soon
 
 ## Changelog
 
