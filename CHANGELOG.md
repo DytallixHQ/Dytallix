@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Package Details
 - Package name: `@dytallix/sdk`
 - License: Apache-2.0
-- Repository: https://github.com/HisMadRealm/dytallix
+- Repository: https://github.com/DytallixHQ/dytallix
 - NPM: https://www.npmjs.com/package/@dytallix/sdk
 
 ---
