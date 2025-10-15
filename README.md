@@ -29,8 +29,8 @@ pnpm add @dytallix/sdk
 import { DytallixClient } from '@dytallix/sdk';
 
 const client = new DytallixClient({
-  rpcUrl: 'https://rpc.testnet.dytallix.network',
-  chainId: 'dyt-testnet-1'
+  rpcUrl: 'https://dytallix.com/api/',
+  chainId: 'dytallix-testnet-1'
 });
 
 // Check node status
@@ -281,8 +281,8 @@ import { DytallixClient } from '@dytallix/sdk';
 
 async function monitorBalance(address: string) {
   const client = new DytallixClient({
-    rpcUrl: 'https://rpc.testnet.dytallix.network',
-    chainId: 'dyt-testnet-1'
+    rpcUrl: 'https://dytallix.com/api/',
+    chainId: 'dytallix-testnet-1'
   });
 
   setInterval(async () => {
@@ -326,8 +326,8 @@ try {
 
 ```typescript
 const client = new DytallixClient({
-  rpcUrl: 'https://rpc.testnet.dytallix.network',
-  chainId: 'dyt-testnet-1'
+  rpcUrl: 'https://dytallix.com/api/',
+  chainId: 'dytallix-testnet-1'
 });
 ```
 

@@ -13,8 +13,8 @@ import { DytallixClient, PQCWallet } from '@dytallix/sdk';
 async function main() {
   // 1. Connect to Dytallix testnet
   const client = new DytallixClient({
-    rpcUrl: 'https://rpc.testnet.dytallix.network',
-    chainId: 'dyt-testnet-1'
+    rpcUrl: 'https://dytallix.com/api/',
+    chainId: 'dytallix-testnet-1'
   });
 
   console.log('Connected to Dytallix testnet');

@@ -4,8 +4,8 @@ import { DytallixClient, PQCWallet } from '@dytallix/sdk';
 async function main() {
   // Connect to testnet
   const client = new DytallixClient({
-    rpcUrl: 'https://rpc.testnet.dytallix.network',
-    chainId: 'dyt-testnet-1'
+    rpcUrl: 'https://dytallix.com/api/',
+    chainId: 'dytallix-testnet-1'
   });
 
   // Load your wallet (in production, load securely from storage)
@@ -27,7 +27,7 @@ async function main() {
 
   console.log('Transaction sent!');
   console.log('TX Hash:', txHash);
-  console.log('View on explorer: https://explorer.dytallix.network/tx/' + txHash);
+  console.log('View on explorer: https://dytallix.com/explorer/tx/' + txHash);
 }
 
 main().catch(console.error);

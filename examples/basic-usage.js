@@ -4,8 +4,8 @@ import { DytallixClient } from '@dytallix/sdk';
 async function main() {
   // Connect to Dytallix testnet
   const client = new DytallixClient({
-    rpcUrl: 'https://rpc.testnet.dytallix.network',
-    chainId: 'dyt-testnet-1'
+    rpcUrl: 'https://dytallix.com/api/',
+    chainId: 'dytallix-testnet-1'
   });
 
   // Get node status
