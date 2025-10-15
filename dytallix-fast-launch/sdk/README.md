@@ -40,8 +40,8 @@ await initPQC();
 import { DytallixClient } from '@dytallix/sdk';
 
 const client = new DytallixClient({
-  rpcUrl: 'https://dytallix.com/api/',
-  chainId: 'dytallix-testnet-1'
+  rpcUrl: 'https://dytallix.com/rpc',
+  chainId: 'dyt-local-1'
 });
 
 // Check node status
@@ -63,8 +63,9 @@ const wallet = await PQCWallet.generate('ML-DSA');
 console.log('Address:', wallet.address);
 console.log('Algorithm:', wallet.algorithm);
 
-// Export encrypted keystore
-const keystore = await wallet.exportKeystore('your-secure-password');
+// Export wallet as JSON (WARNING: Contains private key in plaintext!)
+const walletJson = wallet.toJSON();
+// For production: Store this securely or encrypt it before saving
 ```
 
 ### 4. Query Account Balance
@@ -185,11 +186,11 @@ Generate a new PQC wallet.
 const wallet = await PQCWallet.generate('ML-DSA');
 ```
 
-##### `fromKeystore(keystore: string, password: string): Promise<PQCWallet>`
-Import wallet from encrypted keystore.
+##### `fromJSON(json: WalletJSON): PQCWallet`
+Import wallet from JSON export.
 
 ```typescript
-const wallet = await PQCWallet.fromKeystore(keystoreJson, 'password');
+const wallet = PQCWallet.fromJSON(walletJson);
 ```
 
 #### Instance Methods
@@ -201,11 +202,12 @@ Sign a transaction with PQC signature.
 const signedTx = await wallet.signTransaction(txObject);
 ```
 
-##### `exportKeystore(password: string): Promise<string>`
-Export encrypted keystore JSON.
+##### `toJSON(): WalletJSON`
+Export wallet as JSON (WARNING: Contains private key in plaintext!).
 
 ```typescript
-const keystore = await wallet.exportKeystore('secure-password');
+const walletJson = wallet.toJSON();
+// Store securely or encrypt before saving
 ```
 
 ## TypeScript Types
@@ -255,13 +257,13 @@ class PaymentGateway {
 
   async initialize() {
     this.client = new DytallixClient({
-      rpcUrl: process.env.DYTALLIX_RPC_URL,
-      chainId: 'dyt-testnet-1'
+      rpcUrl: process.env.DYTALLIX_RPC_URL || 'https://dytallix.com/rpc',
+      chainId: 'dyt-local-1'
     });
 
     // Load merchant wallet
-    const keystoreJson = await fs.readFile('merchant-wallet.json', 'utf-8');
-    this.wallet = await PQCWallet.fromKeystore(keystoreJson, process.env.WALLET_PASSWORD);
+    const walletJson = JSON.parse(await fs.readFile('merchant-wallet.json', 'utf-8'));
+    this.wallet = PQCWallet.fromJSON(walletJson);
   }
 
   async acceptPayment(customerAddress: string, amount: number): Promise<string> {
@@ -295,8 +297,8 @@ import { DytallixClient } from '@dytallix/sdk';
 
 async function monitorBalance(address: string) {
   const client = new DytallixClient({
-    rpcUrl: 'https://dytallix.com/api/',
-    chainId: 'dytallix-testnet-1'
+    rpcUrl: 'https://dytallix.com/rpc',
+    chainId: 'dyt-local-1'
   });
 
   setInterval(async () => {
@@ -340,8 +342,8 @@ try {
 
 ```typescript
 const client = new DytallixClient({
-  rpcUrl: 'https://dytallix.com/api/',
-  chainId: 'dytallix-testnet-1'
+  rpcUrl: 'https://dytallix.com/rpc',
+  chainId: 'dyt-local-1'
 });
 ```
 

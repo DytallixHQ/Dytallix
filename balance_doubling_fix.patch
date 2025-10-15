@@ -1,0 +1,34 @@
+diff --git a/src/main.rs b/src/main.rs
+index abc123..def456 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -131,6 +131,10 @@ async fn main() -> anyhow::Result<()> {
+     if let Some(genesis) = genesis_json.as_ref() {
+         if let Some(accounts) = genesis.get("accounts").and_then(|v| v.as_array()) {
+             let mut st = state.lock().unwrap();
++            
++            // CRITICAL FIX: Clear the in-memory account cache before loading genesis
++            // This prevents loading old balances from the database when set_balance calls get_account
++            st.clear_account_cache();
++            
+             for acc in accounts {
+                 if let (Some(address), Some(balances_obj)) = (
+                     acc.get("address").and_then(|v| v.as_str()),
+
+diff --git a/src/state/mod.rs b/src/state/mod.rs
+index ghi789..jkl012 100644
+--- a/src/state/mod.rs
++++ b/src/state/mod.rs
+@@ -85,6 +85,12 @@ impl State {
+         }
+     }
+ 
++    /// Clear the in-memory account cache
++    /// This is used during genesis loading to prevent loading stale balances from the database
++    pub fn clear_account_cache(&mut self) {
++        self.accounts.clear();
++    }
++
+     /// Test helper: create state without storage for testing
+     #[cfg(test)]
+     pub fn new_for_test() -> Self {
