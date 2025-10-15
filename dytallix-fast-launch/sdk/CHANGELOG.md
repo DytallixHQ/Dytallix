@@ -5,6 +5,26 @@ All notable changes to the Dytallix SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2025-10-15
+
+### Changed
+- 🔄 Updated RPC endpoint configuration
+  - Changed default RPC URL from `https://rpc.testnet.dytallix.network` to `https://dytallix.com/api/`
+  - Updated chain ID from `dyt-testnet-1` to `dytallix-testnet-1` for consistency
+  - Updated all documentation and examples to reflect production endpoints
+
+### Fixed
+- 📝 Updated documentation to match actual deployment configuration
+- 🌐 Corrected explorer URLs to use `dytallix.com` domain
+
+## [0.1.2] - 2025-10-14
+
+### Added
+- ✨ Integrated `@dytallix/pqc-wasm` for real quantum-resistant cryptography
+- 🔐 Real ML-DSA (Dilithium) WASM implementation
+- 📦 Added `initPQC()` export for manual WASM initialization
+- 📚 Enhanced documentation for pqc-wasm integration
+
 ## [0.1.0] - 2025-10-11
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "@dytallix/sdk",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Official JavaScript/TypeScript SDK for Dytallix blockchain",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
