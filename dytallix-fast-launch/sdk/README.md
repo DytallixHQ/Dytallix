@@ -57,18 +57,22 @@ import { PQCWallet, initPQC } from '@dytallix/sdk';
 // Initialize PQC first
 await initPQC();
 
-// Generate ML-DSA (Dilithium) wallet
-const wallet = await PQCWallet.generate('ML-DSA');
+// Generate dilithium5 (ML-DSA) wallet
+const wallet = await PQCWallet.generate('dilithium5');
 
 console.log('Address:', wallet.address);
 console.log('Algorithm:', wallet.algorithm);
 
-// Export wallet as JSON (WARNING: Contains private key in plaintext!)
+// Export wallet as encrypted keystore (RECOMMENDED)
+const keystoreJson = await wallet.exportKeystore('your-strong-password');
+await fs.writeFile('keystore.json', keystoreJson);
+
+// Or export as plain JSON (WARNING: Contains private key in plaintext!)
 const walletJson = wallet.toJSON();
-// For production: Store this securely or encrypt it before saving
+// For production: Use exportKeystore() instead
 ```
 
-### 4. Query Account Balance
+### 4. Query Account Balance (with Auto-Funding)
 
 ```typescript
 const account = await client.getAccount(wallet.address);
@@ -76,6 +80,20 @@ const account = await client.getAccount(wallet.address);
 console.log('DGT Balance:', account.balances.DGT);
 console.log('DRT Balance:', account.balances.DRT);
 console.log('Nonce:', account.nonce);
+
+// Auto-fund empty wallets from faucet
+const totalBalance = (account.balances.DGT || 0) + (account.balances.DRT || 0);
+if (totalBalance === 0) {
+  console.log('💰 Requesting funds from faucet...');
+  const result = await client.requestFromFaucet(wallet.address);
+  
+  if (result.success) {
+    console.log('✅ Faucet funding successful!');
+    // Re-check balance after funding
+    const updatedAccount = await client.getAccount(wallet.address);
+    console.log('Updated balances:', updatedAccount.balances);
+  }
+}
 ```
 
 ### 5. Send a Transaction
@@ -97,7 +115,21 @@ const receipt = await client.waitForTransaction(tx.hash);
 console.log('Status:', receipt.status); // 'success' or 'failed'
 ```
 
-### 6. Query Transaction History
+### 6. Import Wallet from Encrypted Keystore
+
+```typescript
+import { promises as fs } from 'node:fs';
+
+// Load encrypted keystore
+const keystoreJson = await fs.readFile('keystore.json', 'utf-8');
+
+// Decrypt with password
+const wallet = await PQCWallet.importKeystore(keystoreJson, 'your-strong-password');
+
+console.log('Loaded wallet:', wallet.address);
+```
+
+### 7. Query Transaction History
 
 ```typescript
 const txs = await client.getTransactions({
@@ -193,6 +225,13 @@ Import wallet from JSON export.
 const wallet = PQCWallet.fromJSON(walletJson);
 ```
 
+##### `importKeystore(keystoreJson: string | object, password: string): Promise<PQCWallet>`
+Import wallet from encrypted keystore.
+
+```typescript
+const wallet = await PQCWallet.importKeystore(keystoreJson, 'password');
+```
+
 #### Instance Methods
 
 ##### `signTransaction(tx: Transaction): Promise<SignedTransaction>`
@@ -208,6 +247,14 @@ Export wallet as JSON (WARNING: Contains private key in plaintext!).
 ```typescript
 const walletJson = wallet.toJSON();
 // Store securely or encrypt before saving
+```
+
+##### `exportKeystore(password: string): Promise<string>`
+Export wallet as encrypted keystore JSON (RECOMMENDED).
+
+```typescript
+const keystoreJson = await wallet.exportKeystore('strong-password');
+await fs.writeFile('keystore.json', keystoreJson);
 ```
 
 ## TypeScript Types
@@ -355,6 +402,14 @@ const client = new DytallixClient({
   chainId: 'dyt-local-1'
 });
 ```
+
+## Examples
+
+Complete working examples are available in the repository:
+
+- **[complete-example.mjs](../../examples/complete-example.mjs)** - Full SDK demonstration
+- **[quick-start.mjs](../../examples/quick-start.mjs)** - Minimal Quick Start example  
+- **[check-balance.mjs](../../examples/check-balance.mjs)** - Balance checker with auto-funding
 
 ## Contributing
 

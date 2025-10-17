@@ -213,4 +213,43 @@ export class DytallixClient {
     const response = await this.http.get('/block/latest');
     return response.data;
   }
+
+  /**
+   * Request tokens from the faucet
+   * @param address - Address to fund
+   * @param dgtAmount - Amount of DGT to request (default: 100)
+   * @param drtAmount - Amount of DRT to request (default: 1000)
+   * @returns Transaction status
+   */
+  async requestFromFaucet(
+    address: string, 
+    dgtAmount: number = 100, 
+    drtAmount: number = 1000
+  ): Promise<{ success: boolean; message: string; credited?: { DGT: number; DRT: number } }> {
+    try {
+      // Convert to micro-units
+      const udgt = Math.floor(dgtAmount * 1_000_000);
+      const udrt = Math.floor(drtAmount * 1_000_000);
+      
+      const response = await this.http.post('/dev/faucet', { 
+        address,
+        udgt,
+        udrt
+      });
+      
+      return {
+        success: true,
+        message: `Credited ${dgtAmount} DGT and ${drtAmount} DRT to ${address}`,
+        credited: {
+          DGT: dgtAmount,
+          DRT: drtAmount
+        }
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Faucet request failed'
+      };
+    }
+  }
 }

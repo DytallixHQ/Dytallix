@@ -4,8 +4,8 @@ import { DytallixClient, PQCWallet } from '@dytallix/sdk';
 async function main() {
   // Connect to testnet
   const client = new DytallixClient({
-    rpcUrl: 'https://dytallix.com/api/',
-    chainId: 'dytallix-testnet-1'
+    rpcUrl: 'https://dytallix.com/rpc',
+    chainId: 'dyt-local-1'
   });
 
   // Load your wallet (in production, load securely from storage)

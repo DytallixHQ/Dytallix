@@ -7,9 +7,9 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.mjs"
     }
   },
   "files": [
@@ -47,9 +47,10 @@
   },
   "homepage": "https://dytallix.network",
   "dependencies": {
-    "pqc-wasm": "^0.1.0",
     "axios": "^1.6.0",
-    "base64-js": "^1.5.1"
+    "base64-js": "^1.5.1",
+    "js-sha3": "^0.9.3",
+    "pqc-wasm": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

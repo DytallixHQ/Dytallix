@@ -4,8 +4,8 @@ import { DytallixClient, PQCWallet, type TransactionResponse } from '@dytallix/s
 async function demonstrateTypescript(): Promise<void> {
   // Client with full type safety
   const client = new DytallixClient({
-    rpcUrl: 'https://dytallix.com/api/',
-    chainId: 'dytallix-testnet-1'
+    rpcUrl: 'https://dytallix.com/rpc',
+    chainId: 'dyt-local-1'
   });
 
   // Type-safe wallet creation

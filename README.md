@@ -2,14 +2,25 @@
 
 Official JavaScript/TypeScript SDK for interacting with the Dytallix blockchain.
 
-## Features
+## 🌟 Features
 
-- ✅ **PQC Wallet Integration** - ML-DSA (Dilithium) and SLH-DSA (SPHINCS+) support
-- ✅ **Transaction Signing** - Quantum-resistant cryptographic signatures
+- ✅ **PQC Wallet Integration** - Quantum-resistant dilithium5 (ML-DSA) signatures
+- ✅ **Auto-Funding** - Automatic testnet token distribution for empty wallets
+- ✅ **Transaction Signing** - Post-quantum cryptographic signatures
 - ✅ **Account Queries** - Fetch balances, nonces, transaction history
 - ✅ **Token Transfers** - Send DGT/DRT with automatic fee calculation
+- ✅ **Faucet Integration** - Built-in testnet token requests
+- ✅ **Advanced API Server** - Production-ready REST API with WebSocket support
 - ✅ **TypeScript Support** - Full type definitions included
 - ✅ **Browser & Node.js** - Works in both environments
+- ✅ **Production Deployment** - Cloud deployment guides and scripts
+
+## 🚀 Live Demo
+
+Try our deployed API server:
+- **API Base:** http://178.156.187.81:3000
+- **Interactive Docs:** http://178.156.187.81:3000/
+- **Health Check:** http://178.156.187.81:3000/api/health
 
 ## Installation
 
@@ -29,8 +40,8 @@ pnpm add @dytallix/sdk
 import { DytallixClient } from '@dytallix/sdk';
 
 const client = new DytallixClient({
-  rpcUrl: 'https://dytallix.com/api/',
-  chainId: 'dytallix-testnet-1'
+  rpcUrl: 'https://dytallix.com/rpc',
+  chainId: 'dyt-local-1'
 });
 
 // Check node status
@@ -41,10 +52,13 @@ console.log('Block height:', status.block_height);
 ### 2. Create a PQC Wallet
 
 ```typescript
-import { PQCWallet } from '@dytallix/sdk';
+import { PQCWallet, initPQC } from '@dytallix/sdk';
 
-// Generate ML-DSA (Dilithium) wallet
-const wallet = await PQCWallet.generate('ML-DSA');
+// Initialize PQC WASM module (required once per app)
+await initPQC();
+
+// Generate dilithium5 (quantum-resistant) wallet  
+const wallet = await PQCWallet.generate('dilithium5');
 
 console.log('Address:', wallet.address);
 console.log('Algorithm:', wallet.algorithm);
@@ -53,7 +67,7 @@ console.log('Algorithm:', wallet.algorithm);
 const keystore = await wallet.exportKeystore('your-secure-password');
 ```
 
-### 3. Query Account Balance
+### 3. Query Account Balance (with Auto-Funding)
 
 ```typescript
 const account = await client.getAccount(wallet.address);
@@ -61,6 +75,20 @@ const account = await client.getAccount(wallet.address);
 console.log('DGT Balance:', account.balances.DGT);
 console.log('DRT Balance:', account.balances.DRT);
 console.log('Nonce:', account.nonce);
+
+// Auto-fund empty wallets from faucet
+const totalBalance = (account.balances.DGT || 0) + (account.balances.DRT || 0);
+if (totalBalance === 0) {
+  console.log('💰 Requesting funds from faucet...');
+  const result = await client.requestFromFaucet(wallet.address);
+  
+  if (result.success) {
+    console.log('✅ Faucet funding successful!');
+    // Re-check balance after funding
+    const updatedAccount = await client.getAccount(wallet.address);
+    console.log('Updated balances:', updatedAccount.balances);
+  }
+}
 ```
 
 ### 4. Send a Transaction
@@ -149,6 +177,16 @@ const receipt = await client.waitForTransaction(tx.hash);
 // { status: 'success', block: 12346, ... }
 ```
 
+##### `requestFromFaucet(address: string): Promise<FaucetResponse>`
+Request tokens from the testnet faucet for development/testing.
+
+```typescript
+const result = await client.requestFromFaucet('dyt1abc...');
+// { success: true, message: 'Tokens sent successfully', credited: {...} }
+```
+
+**Note**: Only available on testnet. Provides 100 DGT + 1000 DRT per request.
+
 ##### `getTransactions(query: TransactionQuery): Promise<Transaction[]>`
 Query transaction history.
 
@@ -164,18 +202,20 @@ const txs = await client.getTransactions({
 
 #### Static Methods
 
-##### `generate(algorithm: 'ML-DSA' | 'SLH-DSA'): Promise<PQCWallet>`
-Generate a new PQC wallet.
+##### `generate(algorithm: 'dilithium5' | 'falcon1024' | 'sphincs_sha2_128s_simple'): Promise<PQCWallet>`
+Generate a new PQC wallet. **Requires `initPQC()` to be called first.**
 
 ```typescript
-const wallet = await PQCWallet.generate('ML-DSA');
+await initPQC(); // Required once per app
+const wallet = await PQCWallet.generate('dilithium5'); // Default: dilithium5
 ```
 
-##### `fromKeystore(keystore: string, password: string): Promise<PQCWallet>`
-Import wallet from encrypted keystore.
+##### `importKeystore(keystore: string | object, password: string): Promise<PQCWallet>`
+Import wallet from encrypted keystore. **Requires `initPQC()` to be called first.**
 
 ```typescript
-const wallet = await PQCWallet.fromKeystore(keystoreJson, 'password');
+await initPQC(); // Required once per app
+const wallet = await PQCWallet.importKeystore(keystoreJson, 'password');
 ```
 
 #### Instance Methods
@@ -281,8 +321,8 @@ import { DytallixClient } from '@dytallix/sdk';
 
 async function monitorBalance(address: string) {
   const client = new DytallixClient({
-    rpcUrl: 'https://dytallix.com/api/',
-    chainId: 'dytallix-testnet-1'
+    rpcUrl: 'https://dytallix.com/rpc',
+    chainId: 'dyt-local-1'
   });
 
   setInterval(async () => {
@@ -320,13 +360,39 @@ try {
 }
 ```
 
+## Examples
+
+Complete working examples are available in the `examples/` directory:
+
+- **[complete-example.mjs](examples/complete-example.mjs)** - Full SDK demonstration with wallet creation, auto-funding, transactions, and history
+- **[quick-start.mjs](examples/quick-start.mjs)** - Minimal example following the Quick Start guide  
+- **[check-balance.mjs](examples/check-balance.mjs)** - Balance checker with automatic faucet funding
+
+Run examples:
+```bash
+# Complete example with wallet creation and funding
+node examples/complete-example.mjs
+
+# Check balance for any address (with auto-funding)
+node examples/check-balance.mjs dyt1abc123...
+```
+
 ## Network Configuration
+
+### Mainnet (Production)
+
+```typescript
+const client = new DytallixClient({
+  rpcUrl: 'https://dytallix.com/rpc',
+  chainId: 'dyt-local-1'  // Will be updated for mainnet
+});
+```
 
 ### Testnet
 
 ```typescript
 const client = new DytallixClient({
-  rpcUrl: 'https://dytallix.com/api/',
+  rpcUrl: 'https://rpc.testnet.dytallix.network',
   chainId: 'dytallix-testnet-1'
 });
 ```

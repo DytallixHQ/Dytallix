@@ -1,0 +1,13 @@
+{
+  "name": "dytallix-sdk-examples",
+  "type": "module",
+  "description": "Example scripts for the Dytallix SDK",
+  "scripts": {
+    "complete": "node complete-example.mjs",
+    "quick-start": "node quick-start.mjs",
+    "balance": "node check-balance.mjs"
+  },
+  "dependencies": {
+    "@dytallix/sdk": "file:../dytallix-fast-launch/sdk"
+  }
+}

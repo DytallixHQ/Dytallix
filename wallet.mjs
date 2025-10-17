@@ -4,6 +4,6 @@ await initPQC();                           // required for wallet ops
 const w = await PQCWallet.generate('ML-DSA');  // or 'SLH-DSA'
 console.log('Address:', w.address);
 
-const walletJson = JSON.stringify(w.toJSON(), null, 2);
-await (await import('node:fs/promises')).writeFile('wallet.json', walletJson);
-console.log('Saved wallet.json (WARNING: Contains unencrypted private key!)');
+const ks = await w.exportKeystore('change-this-password');
+await (await import('node:fs/promises')).writeFile('keystore.json', ks);
+console.log('Saved keystore.json');
