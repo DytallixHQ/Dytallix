@@ -34,7 +34,7 @@ export async function initPQC(): Promise<void> {
   throw new Error(
     'PQC WASM module not loaded. ' +
     'Please ensure @dytallix/pqc-wasm is installed and initialized. ' +
-    'See https://docs.dytallix.com/developers/pqc-wallet'
+    'See https://dytallix.com/#/docs'
   );
 }
 
