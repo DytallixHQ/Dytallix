@@ -7,10 +7,11 @@ export type {
   TransactionQuery,
   TransactionReceipt,
   SendTokensRequest,
-  TransactionResponse
+  TransactionResponse,
+  FaucetResponse
 } from './client';
 
-export { PQCWallet } from './wallet';
+export { PQCWallet, initPQC } from './wallet';
 export type {
   PQCAlgorithm,
   KeyPair
