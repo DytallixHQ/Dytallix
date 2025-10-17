@@ -17,10 +17,37 @@ Official JavaScript/TypeScript SDK for interacting with the Dytallix blockchain.
 
 ## 🚀 Live Demo
 
-Try our deployed API server:
+### For End Users - Web GUI
+Experience Dytallix with our intuitive web interface:
+- **Main Website:** https://dytallix.com
+- **PQC Wallet:** Create quantum-resistant wallets
+- **Send/Receive:** Transfer DGT and DRT tokens
+- **Faucet:** Get testnet tokens instantly
+- **Explorer:** View transactions and balances
+
+### For Developers - API Server
+Integrate Dytallix into your applications:
 - **API Base:** http://178.156.187.81:3000
 - **Interactive Docs:** http://178.156.187.81:3000/
 - **Health Check:** http://178.156.187.81:3000/api/health
+
+## Who This SDK Is For
+
+### 🌐 End Users
+Use the **Dytallix Web Interface** at [dytallix.com](https://dytallix.com):
+- Create quantum-resistant wallets instantly
+- Send and receive DGT/DRT tokens
+- View transaction history and balances
+- Get testnet tokens from the faucet
+- No technical knowledge required
+
+### 👨‍💻 Developers & Businesses
+Use this **JavaScript/TypeScript SDK** to integrate Dytallix into your applications:
+- Build trading platforms and exchanges
+- Create payment gateways and e-commerce solutions
+- Develop mobile apps and desktop software
+- Integrate with existing business systems
+- Access programmatic blockchain functionality
 
 ## Installation
 
@@ -626,10 +653,11 @@ Apache 2.0 - See [LICENSE](LICENSE) for details.
 
 ## Support
 
+- **Web Interface:** [https://dytallix.com](https://dytallix.com) - Create wallets and send transactions
 - **GitHub Issues:** [https://github.com/DytallixHQ/Dytallix/issues](https://github.com/DytallixHQ/Dytallix/issues)
 - **Twitter/X:** [@DytallixHQ](https://twitter.com/DytallixHQ)
 - **Documentation:** [https://docs.dytallix.com](https://docs.dytallix.com)
-- **Live Demo:** [http://178.156.187.81:3000](http://178.156.187.81:3000)
+- **Developer API:** [http://178.156.187.81:3000](http://178.156.187.81:3000)
 
 ## Changelog
 
