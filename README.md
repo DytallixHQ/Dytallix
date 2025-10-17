@@ -17,10 +17,55 @@ Official JavaScript/TypeScript SDK for interacting with the Dytallix blockchain.
 
 ## 🚀 Live Demo
 
-Try our deployed API server:
+### For End Users - Web GUI
+Experience Dytallix with our intuitive web interface:
+- **Main Website:** https://www.dytallix.com
+- **PQC Wallet:** Create quantum-resistant wallets
+- **Send/Receive:** Transfer DGT and DRT tokens
+- **Faucet:** Get testnet tokens instantly
+- **Explorer:** View transactions and balances
+
+### For Developers - API Server
+Integrate Dytallix into your applications:
 - **API Base:** http://178.156.187.81:3000
 - **Interactive Docs:** http://178.156.187.81:3000/
 - **Health Check:** http://178.156.187.81:3000/api/health
+
+## 🛡️ Security Features
+
+### Enhanced Key Management (NEW)
+
+Dytallix SDK now includes secure key management to address **CWE-316: Cleartext Storage of Sensitive Information in Memory**:
+
+```typescript
+import { EphemeralPQCKeyManager } from '@dytallix/sdk';
+
+// Create secure key manager with automatic cleanup
+const keyManager = new EphemeralPQCKeyManager({
+  enableBeforeUnloadCleanup: true,  // Auto-cleanup on navigation
+  secureDeletePasses: 3,            // Multiple overwrite passes
+  enableLogging: false              // Disable in production
+});
+
+// Generate ephemeral keys that are automatically cleaned up
+const keyPair = await keyManager.generateKeys('ML-DSA');
+
+// Keys are automatically cleared on:
+// - Browser navigation (beforeunload event)
+// - Tab switching (optional)
+// - Manual cleanup
+keyManager.clearKeys();
+
+// Always destroy when done
+keyManager.destroy();
+```
+
+**Security Benefits:**
+- ✅ **Automatic Memory Cleanup**: Keys are wiped on browser navigation
+- ✅ **Secure Deletion**: Multiple-pass overwriting with random data
+- ✅ **Browser Event Handling**: beforeunload, visibilitychange events
+- ✅ **Memory Protection**: ArrayBuffer storage instead of strings
+- ✅ **State Validation**: Operations fail on destroyed instances
 
 ## Installation
 
@@ -40,8 +85,8 @@ pnpm add @dytallix/sdk
 import { DytallixClient } from '@dytallix/sdk';
 
 const client = new DytallixClient({
-  rpcUrl: 'https://dytallix.com/rpc',
-  chainId: 'dyt-local-1'
+  rpcUrl: 'https://dytallix.com/api/',
+  chainId: 'dytallix-testnet-1'
 });
 
 // Check node status
@@ -58,7 +103,7 @@ import { PQCWallet, initPQC } from '@dytallix/sdk';
 await initPQC();
 
 // Generate dilithium5 (quantum-resistant) wallet  
-const wallet = await PQCWallet.generate('dilithium5');
+const wallet = await PQCWallet.generate('ML-DSA');
 
 console.log('Address:', wallet.address);
 console.log('Algorithm:', wallet.algorithm);
@@ -97,7 +142,7 @@ if (totalBalance === 0) {
 // Send 10 DRT to another address
 const tx = await client.sendTokens({
   from: wallet,
-  to: 'dyt1ml...',
+  to: 'pqc1ml...',
   amount: 10,
   denom: 'DRT',
   memo: 'Payment for services'
@@ -152,13 +197,13 @@ const io = new Server(server);
 
 // Initialize SDK
 const sdk = new DytallixClient({
-  rpcUrl: 'https://dytallix.com/rpc',
-  chainId: 'dyt-local-1'
+  rpcUrl: 'https://dytallix.com/api/',
+  chainId: 'dytallix-testnet-1'
 });
 
 // API endpoint to create wallet
 app.post('/api/wallet/create', async (req, res) => {
-  const wallet = await PQCWallet.generate('dilithium5');
+  const wallet = await PQCWallet.generate('ML-DSA');
   const keystore = await wallet.exportKeystore('default-password');
   
   res.json({
@@ -166,7 +211,7 @@ app.post('/api/wallet/create', async (req, res) => {
     wallet: {
       address: wallet.address,
       keystore: JSON.parse(keystore),
-      algorithm: 'dilithium5'
+      algorithm: 'ML-DSA'
     }
   });
 });
@@ -207,7 +252,7 @@ new DytallixClient(config: ClientConfig)
 
 **Config Options:**
 - `rpcUrl` (required): Blockchain RPC endpoint
-- `chainId` (required): Chain identifier (e.g., 'dyt-local-1')
+- `chainId` (required): Chain identifier (e.g., 'dytallix-testnet-1')
 - `timeout`: Request timeout in ms (default: 30000)
 
 #### Methods
@@ -217,14 +262,14 @@ Get current blockchain status.
 
 ```typescript
 const status = await client.getStatus();
-// { block_height: 12345, chain_id: 'dyt-local-1', ... }
+// { block_height: 12345, chain_id: 'dytallix-testnet-1', ... }
 ```
 
 ##### `getAccount(address: string): Promise<Account>`
 Fetch account details including balances and nonce.
 
 ```typescript
-const account = await client.getAccount('dyt1ml...');
+const account = await client.getAccount('pqc1ml...');
 // { balances: { DGT: 100, DRT: 500 }, nonce: 5, ... }
 ```
 
@@ -234,7 +279,7 @@ Sign and submit a token transfer transaction.
 ```typescript
 const tx = await client.sendTokens({
   from: wallet,
-  to: 'dyt1ml...',
+  to: 'pqc1ml...',
   amount: 10,
   denom: 'DRT',
   memo: 'Optional memo'
@@ -253,7 +298,7 @@ const receipt = await client.waitForTransaction(tx.hash);
 Request tokens from the testnet faucet for development/testing.
 
 ```typescript
-const result = await client.requestFromFaucet('dyt1abc...');
+const result = await client.requestFromFaucet('pqc1abc...');
 // { success: true, message: 'Tokens sent successfully', credited: {...} }
 ```
 
@@ -264,21 +309,50 @@ Query transaction history.
 
 ```typescript
 const txs = await client.getTransactions({
-  address: 'dyt1ml...',
+  address: 'pqc1ml...',
   limit: 20,
   offset: 0
 });
 ```
 
+### EphemeralPQCKeyManager (NEW - Secure)
+
+For maximum security, use `EphemeralPQCKeyManager` instead of `PQCWallet` in browser environments:
+
+#### Constructor
+
+```typescript
+new EphemeralPQCKeyManager(options?: EphemeralKeyManagerOptions)
+```
+
+**Options:**
+- `enableBeforeUnloadCleanup` (default: true): Auto-cleanup on navigation
+- `secureDeletePasses` (default: 3): Number of memory overwrite passes
+- `enableLogging` (default: false): Enable security logging
+
+#### Methods
+
+##### `generateKeys(algorithm?: 'ML-DSA' | 'SLH-DSA'): Promise<EphemeralKeyPair>`
+Generate new ephemeral keys with automatic cleanup.
+
+##### `clearKeys(): void`
+Manually clear keys from memory using secure deletion.
+
+##### `signTransaction(txObj: any): Promise<any>`
+Sign transaction with ephemeral keys.
+
+##### `destroy(): void`
+Destroy manager and cleanup all resources.
+
 ### PQCWallet
 
 #### Static Methods
 
-##### `generate(algorithm: 'dilithium5'): Promise<PQCWallet>`
+##### `generate(algorithm: 'ML-DSA' | 'SLH-DSA'): Promise<PQCWallet>`
 Generate a new PQC wallet with quantum-resistant cryptography.
 
 ```typescript
-const wallet = await PQCWallet.generate('dilithium5');
+const wallet = await PQCWallet.generate('ML-DSA');
 ```
 
 ##### `fromKeystore(keystore: string, password: string): Promise<PQCWallet>`
@@ -368,8 +442,8 @@ class PaymentGateway {
 
   async initialize() {
     this.client = new DytallixClient({
-      rpcUrl: process.env.DYTALLIX_RPC_URL || 'https://dytallix.com/rpc',
-      chainId: 'dyt-local-1'
+      rpcUrl: process.env.DYTALLIX_RPC_URL || 'https://dytallix.com/api/',
+      chainId: 'dytallix-testnet-1'
     });
 
     // Load merchant wallet
@@ -412,8 +486,8 @@ class BalanceMonitor {
 
   constructor(io: Server) {
     this.client = new DytallixClient({
-      rpcUrl: 'https://dytallix.com/rpc',
-      chainId: 'dyt-local-1'
+      rpcUrl: 'https://dytallix.com/api/',
+      chainId: 'dytallix-testnet-1'
     });
     this.io = io;
   }
@@ -446,7 +520,7 @@ class WalletManager {
   private wallets: Map<string, PQCWallet> = new Map();
 
   async createWallet(name: string, password: string): Promise<string> {
-    const wallet = await PQCWallet.generate('dilithium5');
+    const wallet = await PQCWallet.generate('ML-DSA');
     const keystore = await wallet.exportKeystore(password);
     
     // Store wallet
@@ -516,8 +590,8 @@ try {
 ### Production
 ```typescript
 const client = new DytallixClient({
-  rpcUrl: 'https://dytallix.com/rpc',
-  chainId: 'dyt-local-1'
+  rpcUrl: 'https://dytallix.com/api/',
+  chainId: 'dytallix-testnet-1'
 });
 ```
 
@@ -532,10 +606,10 @@ const client = new DytallixClient({
 ### Environment Variables
 ```bash
 # Production
-DYTALLIX_RPC_URL=https://dytallix.com/rpc
+DYTALLIX_RPC_URL=https://dytallix.com/api/
 DYTALLIX_API_URL=https://dytallix.com/api
 DYTALLIX_FAUCET_URL=https://dytallix.com/faucet
-DYTALLIX_CHAIN_ID=dyt-local-1
+DYTALLIX_CHAIN_ID=dytallix-testnet-1
 
 # Local Development
 DYTALLIX_RPC_URL=http://localhost:26657
@@ -545,22 +619,148 @@ DYTALLIX_CHAIN_ID=dyt-local-1
 ## 🔧 Developer Tools
 
 ### CLI Tools
-```bash
-# Check account balance
-curl https://dytallix.com/api/accounts/dyt1abc.../balance
 
-# Create new wallet
+The Dytallix SDK comes with built-in CLI scripts for common blockchain operations. These Node.js scripts provide an easy way to interact with the blockchain from the command line.
+
+#### Prerequisites
+```bash
+npm install @dytallix/sdk
+# Ensure Node.js 16+ is installed
+```
+
+#### Available Commands
+
+##### 1. **Check Network Status**
+```bash
+node status.mjs
+```
+Shows current blockchain status including block height and chain information.
+
+##### 2. **Create a New PQC Wallet**
+```bash
+node wallet.mjs
+```
+Generates a new quantum-resistant wallet and saves it as `keystore.json`.
+
+**Output:**
+```
+Address: pqc1abc123...
+Saved keystore.json
+```
+
+##### 3. **Check Account Balance (with Auto-Funding)**
+```bash
+node balance.mjs <wallet-address>
+```
+Checks balance for any wallet address. Automatically requests faucet funds for empty wallets.
+
+**Example:**
+```bash
+node balance.mjs pqc1abc123...
+```
+
+**Sample Output:**
+```
+Account: pqc1abc123...
+Balances: { DGT: 0, DRT: 0 }
+Nonce: 0
+
+💰 Wallet has no funds. Requesting from faucet...
+   Requesting: 100 DGT + 1000 DRT
+✅ Faucet funding successful!
+🔄 Updated Balances: { DGT: 100, DRT: 1000 }
+```
+
+##### 4. **Send Tokens**
+```bash
+node send.mjs
+```
+Sends tokens using your saved `keystore.json`. By default sends to itself.
+
+**Specify recipient:**
+```bash
+DYT_TO=pqc1recipient... node send.mjs
+```
+
+**Output:**
+```
+TX hash: 0xabc123...
+Status: success block: 12346
+```
+
+#### Environment Variables
+
+Customize CLI behavior with these variables:
+
+```bash
+# Use different RPC endpoint
+export DYTALLIX_RPC_URL=http://localhost:26657
+
+# Use different chain ID  
+export DYTALLIX_CHAIN_ID=dytallix-testnet-1
+
+# Specify recipient for send command
+export DYT_TO=pqc1abc123...
+```
+
+#### Complete Workflow Example
+
+```bash
+# 1. Check network status
+node status.mjs
+
+# 2. Create new wallet
+node wallet.mjs
+
+# 3. Check balance (auto-funds if empty)
+node balance.mjs pqc1your-address-here
+
+# 4. Send tokens to another address
+DYT_TO=pqc1recipient-address node send.mjs
+```
+
+#### Batch Operations Script
+
+Create `workflow.sh` for automated operations:
+
+```bash
+#!/bin/bash
+echo "Creating new wallet..."
+node wallet.mjs
+
+echo "Getting wallet address..."
+ADDRESS=$(node -e "
+const fs = require('fs');
+const ks = JSON.parse(fs.readFileSync('keystore.json', 'utf8'));
+console.log(ks.address);
+")
+
+echo "Checking balance and auto-funding..."
+node balance.mjs $ADDRESS
+
+echo "Wallet ready for transactions!"
+```
+
+### REST API Tools
+
+For programmatic access, use these curl commands:
+
+```bash
+# Check account balance via API
+curl https://dytallix.com/api/accounts/pqc1abc.../balance
+
+# Create new wallet via API
 curl -X POST http://localhost:3000/api/wallet/create \
   -H "Content-Type: application/json" \
-  -d '{"algorithm": "dilithium5", "name": "My Wallet"}'
+  -d '{"algorithm": "ML-DSA", "name": "My Wallet"}'
 
-# Send transaction
+# Send transaction via API
 curl -X POST http://localhost:3000/api/transfer \
   -H "Content-Type: application/json" \
   -d '{
     "keystore": {...},
     "password": "your-password",
-    "to": "dyt1recipient...",
+    "to": "pqc1recipient...",
     "amount": "100",
     "denom": "DGT"
   }'
@@ -609,10 +809,11 @@ Apache 2.0 - See [LICENSE](LICENSE) for details.
 
 ## Support
 
+- **Web Interface:** [https://www.dytallix.com](https://www.dytallix.com) - Create wallets and send transactions
 - **GitHub Issues:** [https://github.com/DytallixHQ/Dytallix/issues](https://github.com/DytallixHQ/Dytallix/issues)
 - **Twitter/X:** [@DytallixHQ](https://twitter.com/DytallixHQ)
-- **Documentation:** [https://docs.dytallix.com](https://docs.dytallix.com)
-- **Live Demo:** [http://178.156.187.81:3000](http://178.156.187.81:3000)
+- **Documentation:** [https://www.dytallix.com/#/docs](https://www.dytallix.com/#/docs)
+- **Developer API:** [http://178.156.187.81:3000](http://178.156.187.81:3000)
 
 ## Changelog
 

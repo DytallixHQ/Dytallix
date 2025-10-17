@@ -16,6 +16,16 @@ export type {
   KeyPair
 } from './wallet';
 
+export { 
+  EphemeralPQCKeyManager,
+  createEphemeralKeyManager,
+  useEphemeralPQCKeys
+} from './hooks/useEphemeralPQCKeys';
+export type {
+  EphemeralKeyPair,
+  EphemeralKeyManagerOptions
+} from './hooks/useEphemeralPQCKeys';
+
 export { DytallixError, ErrorCode } from './errors';
 
 // Version
