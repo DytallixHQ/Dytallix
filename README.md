@@ -1,6 +1,7 @@
 # @dytallix/sdk
 
-Official JavaScript/TypeScript SDK for interacting with the Dytallix blockchain.
+Official Dytallix PQC L1 blockhain SDK 
+
 
 ## 🌟 Features
 
