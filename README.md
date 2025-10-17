@@ -589,16 +589,142 @@ DYTALLIX_CHAIN_ID=dyt-local-1
 ## 🔧 Developer Tools
 
 ### CLI Tools
+
+The Dytallix SDK comes with built-in CLI scripts for common blockchain operations. These Node.js scripts provide an easy way to interact with the blockchain from the command line.
+
+#### Prerequisites
 ```bash
-# Check account balance
+npm install @dytallix/sdk
+# Ensure Node.js 16+ is installed
+```
+
+#### Available Commands
+
+##### 1. **Check Network Status**
+```bash
+node status.mjs
+```
+Shows current blockchain status including block height and chain information.
+
+##### 2. **Create a New PQC Wallet**
+```bash
+node wallet.mjs
+```
+Generates a new quantum-resistant wallet and saves it as `keystore.json`.
+
+**Output:**
+```
+Address: dyt1abc123...
+Saved keystore.json
+```
+
+##### 3. **Check Account Balance (with Auto-Funding)**
+```bash
+node balance.mjs <wallet-address>
+```
+Checks balance for any wallet address. Automatically requests faucet funds for empty wallets.
+
+**Example:**
+```bash
+node balance.mjs dyt1abc123...
+```
+
+**Sample Output:**
+```
+Account: dyt1abc123...
+Balances: { DGT: 0, DRT: 0 }
+Nonce: 0
+
+💰 Wallet has no funds. Requesting from faucet...
+   Requesting: 100 DGT + 1000 DRT
+✅ Faucet funding successful!
+🔄 Updated Balances: { DGT: 100, DRT: 1000 }
+```
+
+##### 4. **Send Tokens**
+```bash
+node send.mjs
+```
+Sends tokens using your saved `keystore.json`. By default sends to itself.
+
+**Specify recipient:**
+```bash
+DYT_TO=dyt1recipient... node send.mjs
+```
+
+**Output:**
+```
+TX hash: 0xabc123...
+Status: success block: 12346
+```
+
+#### Environment Variables
+
+Customize CLI behavior with these variables:
+
+```bash
+# Use different RPC endpoint
+export DYTALLIX_RPC_URL=http://localhost:26657
+
+# Use different chain ID  
+export DYTALLIX_CHAIN_ID=dyt-local-1
+
+# Specify recipient for send command
+export DYT_TO=dyt1abc123...
+```
+
+#### Complete Workflow Example
+
+```bash
+# 1. Check network status
+node status.mjs
+
+# 2. Create new wallet
+node wallet.mjs
+
+# 3. Check balance (auto-funds if empty)
+node balance.mjs dyt1your-address-here
+
+# 4. Send tokens to another address
+DYT_TO=dyt1recipient-address node send.mjs
+```
+
+#### Batch Operations Script
+
+Create `workflow.sh` for automated operations:
+
+```bash
+#!/bin/bash
+echo "Creating new wallet..."
+node wallet.mjs
+
+echo "Getting wallet address..."
+ADDRESS=$(node -e "
+const fs = require('fs');
+const ks = JSON.parse(fs.readFileSync('keystore.json', 'utf8'));
+console.log(ks.address);
+")
+
+echo "Checking balance and auto-funding..."
+node balance.mjs $ADDRESS
+
+echo "Wallet ready for transactions!"
+```
+
+### REST API Tools
+
+For programmatic access, use these curl commands:
+
+```bash
+# Check account balance via API
 curl https://dytallix.com/api/accounts/dyt1abc.../balance
 
-# Create new wallet
+# Create new wallet via API
 curl -X POST http://localhost:3000/api/wallet/create \
   -H "Content-Type: application/json" \
   -d '{"algorithm": "dilithium5", "name": "My Wallet"}'
 
-# Send transaction
+# Send transaction via API
 curl -X POST http://localhost:3000/api/transfer \
   -H "Content-Type: application/json" \
   -d '{
