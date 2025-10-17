@@ -70,8 +70,23 @@ const keystore = await wallet.exportKeystore('your-secure-password');
 ### 3. Query Account Balance (with Auto-Funding)
 
 ```typescript
-const account = await client.getAccount(wallet.address);
+// Prompt user for wallet address to fund (or use current wallet)
+const readline = require('readline');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
+const targetAddress = await new Promise((resolve) => {
+  rl.question('Enter wallet address to fund (or press Enter to use current wallet): ', (address) => {
+    resolve(address.trim() || wallet.address);
+    rl.close();
+  });
+});
+
+const account = await client.getAccount(targetAddress);
+
+console.log(`Address: ${targetAddress}`);
 console.log('DGT Balance:', account.balances.DGT);
 console.log('DRT Balance:', account.balances.DRT);
 console.log('Nonce:', account.nonce);
@@ -79,15 +94,17 @@ console.log('Nonce:', account.nonce);
 // Auto-fund empty wallets from faucet
 const totalBalance = (account.balances.DGT || 0) + (account.balances.DRT || 0);
 if (totalBalance === 0) {
-  console.log('💰 Requesting funds from faucet...');
-  const result = await client.requestFromFaucet(wallet.address);
+  console.log(`💰 Requesting funds from faucet for ${targetAddress}...`);
+  const result = await client.requestFromFaucet(targetAddress);
   
   if (result.success) {
     console.log('✅ Faucet funding successful!');
     // Re-check balance after funding
-    const updatedAccount = await client.getAccount(wallet.address);
+    const updatedAccount = await client.getAccount(targetAddress);
     console.log('Updated balances:', updatedAccount.balances);
   }
+} else {
+  console.log('💡 Wallet already has funds. No faucet request needed.');
 }
 ```
 
