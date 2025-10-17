@@ -28,7 +28,7 @@ export interface Transaction {
   from: string;
   to: string;
   amount: number;
-  denom: string;
+  denom: 'DGT' | 'DRT';
   fee: number;
   memo?: string;
   status: 'pending' | 'success' | 'failed';
@@ -61,6 +61,16 @@ export interface SendTokensRequest {
 export interface TransactionResponse {
   hash: string;
   status: string;
+}
+
+export interface FaucetResponse {
+  success: boolean;
+  message: string;
+  credited: {
+    address: string;
+    amount: string;
+    denom: string;
+  };
 }
 
 export class DytallixClient {
@@ -174,6 +184,39 @@ export class DytallixClient {
     }
 
     throw new Error(`Transaction ${hash} not confirmed within ${timeout}ms`);
+  }
+
+  /**
+   * Request tokens from the testnet faucet for development/testing
+   * Only available on testnet. Provides tokens with rate limiting.
+   */
+  async requestFromFaucet(address: string, amount?: string): Promise<FaucetResponse> {
+    try {
+      const response = await this.http.post('/faucet', {
+        address: address,
+        amount: amount || '1000000' // Default 1M tokens
+      });
+
+      return {
+        success: true,
+        message: response.data.message || 'Tokens sent successfully',
+        credited: {
+          address: address,
+          amount: response.data.amount || amount || '1000000',
+          denom: response.data.denom || 'DGT'
+        }
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Faucet request failed',
+        credited: {
+          address: address,
+          amount: '0',
+          denom: 'DGT'
+        }
+      };
+    }
   }
 
   /**
