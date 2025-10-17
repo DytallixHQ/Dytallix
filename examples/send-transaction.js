@@ -1,33 +1,44 @@
 // Send a transaction
-import { DytallixClient, PQCWallet } from '@dytallix/sdk';
+import { DytallixClient, PQCWallet, initPQC } from '@dytallix/sdk';
 
 async function main() {
-  // Connect to testnet
+  // Initialize PQC WASM module (required once per app)
+  await initPQC();
+  
+  // Connect to Dytallix network
   const client = new DytallixClient({
-    rpcUrl: 'https://rpc.testnet.dytallix.network',
-    chainId: 'dyt-testnet-1'
+    rpcUrl: 'https://dytallix.com/rpc',
+    chainId: 'dyt-local-1'
   });
 
-  // Load your wallet (in production, load securely from storage)
-  const wallet = await PQCWallet.generate('ML-DSA');
-  const senderAddress = await wallet.getAddress();
+  // Load your wallet from keystore (in production, load securely from storage)
+  // For demo, we'll generate a new wallet
+  const wallet = await PQCWallet.generate('dilithium5');
+  
+  // Or load from existing keystore:
+  // const keystoreJson = await fs.readFile('keystore.json', 'utf-8');
+  // const wallet = await PQCWallet.fromKeystore(keystoreJson, 'your-password');
 
   // Transaction details
   const recipient = 'dyt1...recipient_address';
-  const amount = 1000000n; // 1 DGT (assuming 6 decimals)
+  const amount = 10; // 10 DRT tokens
   
   // Send tokens
-  const txHash = await client.sendTokens({
-    from: senderAddress,
+  const tx = await client.sendTokens({
+    from: wallet,
     to: recipient,
     amount: amount,
-    tokenType: 'DGT',
-    wallet: wallet
+    denom: 'DRT',
+    memo: 'Payment for services'
   });
 
   console.log('Transaction sent!');
-  console.log('TX Hash:', txHash);
-  console.log('View on explorer: https://explorer.dytallix.network/tx/' + txHash);
+  console.log('TX Hash:', tx.hash);
+  
+  // Wait for confirmation
+  const receipt = await client.waitForTransaction(tx.hash);
+  console.log('Status:', receipt.status); // 'success' or 'failed'
+  console.log('Block:', receipt.block);
 }
 
 main().catch(console.error);
