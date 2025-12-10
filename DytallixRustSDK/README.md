@@ -12,11 +12,16 @@ Official Rust SDK for interacting with the Dytallix blockchain.
 
 ## Installation
 
-Add to your `Cargo.toml`:
+Add the dependency via Git or local path:
 
 ```toml
 [dependencies]
-dytallix_sdk = { git = "https://github.com/DytallixHQ/Dytallix", branch = "main" }
+# Using Git (ensure you have the repo checked out or point to specific commit if supported)
+dytallix_sdk = { git = "https://github.com/DytallixHQ/Dytallix.git", branch = "main" }
+
+# Or for local development after cloning:
+# dytallix_sdk = { path = "../path/to/Dytallix/DytallixRustSDK" }
+
 tokio = { version = "1", features = ["full"] }
 ```
 

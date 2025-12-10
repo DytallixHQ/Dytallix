@@ -13,12 +13,19 @@ Official JavaScript/TypeScript SDK for interacting with the Dytallix blockchain.
 
 ## Installation
 
+Since this SDK is currently hosted on GitHub, you can build it from source:
+
 ```bash
-npm install @dytallix/sdk
-# or
-yarn add @dytallix/sdk
-# or
-pnpm add @dytallix/sdk
+# Clone the repository
+git clone https://github.com/DytallixHQ/Dytallix.git
+cd Dytallix/DytallixTypescriptSDK
+
+# Install dependencies and build
+npm install
+npm run build
+
+# Link for local development if needed
+npm link
 ```
 
 ## Quick Start
