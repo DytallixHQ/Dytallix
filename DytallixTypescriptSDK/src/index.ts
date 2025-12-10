@@ -13,7 +13,8 @@ export type {
 export { PQCWallet } from './wallet';
 export type {
   PQCAlgorithm,
-  KeyPair
+  KeyPair,
+  IPQCProvider
 } from './wallet';
 
 export { DytallixError, ErrorCode } from './errors';
