@@ -29,7 +29,8 @@ console.log('Connected to Dytallix:', status);
 
 ## 📦 What's Included
 
-- **[sdk/](./sdk)** - TypeScript/JavaScript SDK for interacting with Dytallix
+- **[sdk/typescript/](./sdk/typescript)** - TypeScript/JavaScript SDK for interacting with Dytallix
+- **[sdk/rust/](./sdk/rust)** - Rust SDK for high-performance applications
 - **[cli/](./cli)** - Command-line tools for node operations and development
 - **[contracts/](./contracts)** - Example smart contracts (hello-world, counter)
 - **[examples/](./examples)** - Code examples for common use cases
