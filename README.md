@@ -91,6 +91,6 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 ## 🔗 Links
 
 - [Website](https://dytallix.com)
-- [Documentation](https://docs.dytallix.com)
-- [Discord](https://discord.gg/dytallix)
-- [Twitter](https://twitter.com/dytallix)
+- [Documentation](https://dytallix.com/resources)
+- [Discord](https://discord.gg/N8Q4A2KE)
+- [X](https://x.com/dytallixhq)
