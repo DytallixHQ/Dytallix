@@ -80,7 +80,7 @@ Dytallix uses CRYSTALS-Dilithium signatures and CRYSTALS-Kyber key exchange, bot
 - **RPC Endpoint**: `https://dytallix.com/rpc/`
 - **API Endpoint**: `https://dytallix.com/api/`
 - **Explorer**: [https://dytallix.com/build/blockchain](https://dytallix.com/build/blockchain)
-- **Faucet**: Coming soon
+- **Faucet**: [https://dytallix.com/build/faucet](https://dytallix.com/build/faucet)
 
 ## 🤝 Contributing
 
