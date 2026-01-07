@@ -146,3 +146,4 @@ ModuleTests/PulseGuard/artifacts/gan/model_checkpoint/*
 
 **/target/
 dytallix-fast-launch/
+deployment/gcp/terraform/terraform.tfstate.d/
