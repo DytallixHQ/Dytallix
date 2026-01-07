@@ -175,6 +175,25 @@ cd contracts/counter
 cargo build --release --target wasm32-unknown-unknown
 ```
 
+## Contributors & Community
+
+### Learn More
+
+Visit **[www.dytallix.com](https://www.dytallix.com)** for:
+- Technical specifications
+- Whitepapers and research
+- Network statistics
+- Developer resources
+
+### Join the Community
+
+Connect with developers and the Dytallix team:
+
+- **Discord**: [https://discord.gg/N8Q4A2KE](https://discord.gg/N8Q4A2KE)
+- **GitHub**: [https://github.com/DytallixHQ/Dytallix](https://github.com/DytallixHQ/Dytallix)
+
+We welcome contributions, questions, and feedback from the community!
+
 ## License
 
 Apache-2.0
