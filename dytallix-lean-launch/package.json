@@ -81,7 +81,7 @@
     "chai": "^4.3.7",
     "concurrently": "^9.2.0",
     "cypress": "^13.17.0",
-    "cypress-axe": "^1.5.0",
+    "cypress-axe": "^1.7.0",
     "eslint": "^8.53.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
