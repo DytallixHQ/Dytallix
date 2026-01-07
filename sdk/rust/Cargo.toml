@@ -10,6 +10,9 @@ documentation = "https://github.com/DytallixHQ/Dytallix/tree/main/sdk/rust"
 keywords = ["dytallix", "blockchain", "post-quantum", "pqc", "cryptocurrency"]
 categories = ["cryptography", "api-bindings"]
 
+# Exclude from parent workspace
+[workspace]
+
 [lib]
 name = "dytallix_sdk"
 path = "src/lib.rs"

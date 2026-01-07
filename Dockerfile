@@ -37,12 +37,12 @@ COPY explorer/api/ explorer/api/
 # Added: full lean launch workspace so web build & scripts are available
 COPY dytallix-lean-launch/ dytallix-lean-launch/
 
-# Generate lock file and build the workspace
+# Generate lock file and build the workspace with contracts feature enabled
 RUN RUSTFLAGS="--cfg tokio_unstable" cargo generate-lockfile && \
-    RUSTFLAGS="--cfg tokio_unstable" cargo build --release --workspace --locked || \
+    RUSTFLAGS="--cfg tokio_unstable" cargo build --release --workspace --locked --features "contracts" || \
     (cargo update -p base64ct --precise 1.6.0 && \
      cargo update -p time --precise 0.3.36 && \
-     RUSTFLAGS="--cfg tokio_unstable" cargo build --release --workspace)
+     RUSTFLAGS="--cfg tokio_unstable" cargo build --release --workspace --features "contracts")
 
 # Change ownership to non-root user
 RUN chown -R appuser:appuser /app

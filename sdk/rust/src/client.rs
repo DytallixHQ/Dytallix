@@ -238,6 +238,7 @@ impl Client {
         let status = resp.status();
         
         #[derive(Deserialize)]
+        #[allow(dead_code)]
         struct NodeFaucetResponse {
             success: Option<bool>,
             address: Option<String>,
@@ -295,6 +296,197 @@ impl Client {
             retry_after_seconds: None,
         })
     }
+
+    // ===== Contract Methods =====
+
+    /// Deploy a WASM smart contract
+    ///
+    /// # Arguments
+    /// * `code` - Hex-encoded WASM bytecode
+    /// * `deployer` - Address of the deployer
+    /// * `gas_limit` - Optional gas limit (default: 1,000,000)
+    ///
+    /// # Example
+    /// ```no_run
+    /// use dytallix_sdk::Client;
+    ///
+    /// #[tokio::main]
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let client = Client::testnet();
+    ///     let wasm_hex = std::fs::read("contract.wasm")
+    ///         .map(|b| hex::encode(&b))?;
+    ///     
+    ///     let result = client.deploy_contract(&wasm_hex, "dyt1deployer...", None).await?;
+    ///     println!("Contract deployed at: {}", result.address);
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn deploy_contract(
+        &self,
+        code: &str,
+        deployer: &str,
+        gas_limit: Option<u64>,
+    ) -> Result<ContractDeployResponse> {
+        let payload = serde_json::json!({
+            "code": code.strip_prefix("0x").unwrap_or(code),
+            "deployer": deployer,
+            "gas_limit": gas_limit.unwrap_or(1_000_000)
+        });
+
+        let resp = self
+            .http
+            .post(format!("{}/contracts/deploy", self.base_url))
+            .json(&payload)
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            let err_text = resp.text().await?;
+            return Err(SdkError::Api(format!("Contract deploy failed: {err_text}")));
+        }
+
+        #[derive(Deserialize)]
+        struct DeployResp {
+            address: String,
+            tx_hash: String,
+        }
+
+        let data = resp.json::<DeployResp>().await?;
+        Ok(ContractDeployResponse {
+            address: data.address,
+            tx_hash: data.tx_hash,
+        })
+    }
+
+    /// Call a method on a deployed smart contract
+    ///
+    /// # Arguments
+    /// * `address` - Contract address
+    /// * `method` - Method name to call
+    /// * `args` - Optional hex-encoded arguments
+    /// * `gas_limit` - Optional gas limit (default: 1,000,000)
+    pub async fn call_contract(
+        &self,
+        address: &str,
+        method: &str,
+        args: Option<&str>,
+        gas_limit: Option<u64>,
+    ) -> Result<ContractCallResponse> {
+        let payload = serde_json::json!({
+            "address": address,
+            "method": method,
+            "args": args.unwrap_or(""),
+            "gas_limit": gas_limit.unwrap_or(1_000_000)
+        });
+
+        let resp = self
+            .http
+            .post(format!("{}/contracts/call", self.base_url))
+            .json(&payload)
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            let err_text = resp.text().await?;
+            return Err(SdkError::Api(format!("Contract call failed: {err_text}")));
+        }
+
+        #[derive(Deserialize)]
+        struct CallResp {
+            result: String,
+            gas_used: u64,
+            #[serde(default)]
+            logs: Vec<String>,
+        }
+
+        let data = resp.json::<CallResp>().await?;
+        Ok(ContractCallResponse {
+            result: data.result,
+            gas_used: data.gas_used,
+            logs: data.logs,
+        })
+    }
+
+    /// Query contract state by key
+    ///
+    /// # Arguments
+    /// * `address` - Contract address
+    /// * `key` - State key to query
+    ///
+    /// # Returns
+    /// Hex-encoded state value
+    pub async fn get_contract_state(&self, address: &str, key: &str) -> Result<String> {
+        let resp = self
+            .http
+            .get(format!("{}/contracts/state/{}/{}", self.base_url, address, key))
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            return Err(SdkError::Api(format!(
+                "Contract state query failed: {}",
+                resp.status()
+            )));
+        }
+
+        #[derive(Deserialize)]
+        struct StateResp {
+            value: String,
+        }
+
+        let data = resp.json::<StateResp>().await?;
+        Ok(data.value)
+    }
+
+    // ===== Genesis & Network Info =====
+
+    /// Get the genesis configuration for this chain
+    pub async fn get_genesis(&self) -> Result<GenesisConfig> {
+        let resp = self
+            .http
+            .get(format!("{}/genesis", self.base_url))
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            return Err(SdkError::Api(format!("Genesis query failed: {}", resp.status())));
+        }
+
+        let config = resp.json::<GenesisConfig>().await?;
+        Ok(config)
+    }
+
+    /// Get list of connected peers
+    pub async fn get_peers(&self) -> Result<Vec<PeerInfo>> {
+        let resp = self
+            .http
+            .get(format!("{}/peers", self.base_url))
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            return Err(SdkError::Api(format!("Peers query failed: {}", resp.status())));
+        }
+
+        let peers = resp.json::<Vec<PeerInfo>>().await?;
+        Ok(peers)
+    }
+
+    /// Get chain statistics
+    pub async fn get_stats(&self) -> Result<serde_json::Value> {
+        let resp = self
+            .http
+            .get(format!("{}/api/stats", self.base_url))
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            return Err(SdkError::Api(format!("Stats query failed: {}", resp.status())));
+        }
+
+        let stats = resp.json::<serde_json::Value>().await?;
+        Ok(stats)
+    }
 }
 
 /// Faucet request response
@@ -323,11 +515,21 @@ pub struct FaucetDispensed {
 /// Chain status response
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ChainStatus {
+    /// Current block height (aliased from latest_height)
+    #[serde(alias = "latest_height")]
     pub block_height: u64,
     pub chain_id: String,
+    /// Latest block hash (may be empty on some endpoints)
+    #[serde(default, alias = "latest_block_hash")]
     pub latest_block_hash: String,
     #[serde(default)]
     pub latest_block_time: String,
+    /// Whether node is syncing
+    #[serde(default)]
+    pub syncing: bool,
+    /// Node status (healthy, etc)
+    #[serde(default)]
+    pub status: String,
 }
 
 /// Account information
@@ -437,6 +639,91 @@ impl StakingRewards {
     pub fn drt_rewards(&self) -> f64 {
         self.rewards.udrt as f64 / 1_000_000.0
     }
+}
+
+// ===== Contract Types =====
+
+/// Contract deployment response
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ContractDeployResponse {
+    /// Deployed contract address
+    pub address: String,
+    /// Deployment transaction hash
+    pub tx_hash: String,
+}
+
+/// Contract call response
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ContractCallResponse {
+    /// Return value as hex-encoded bytes
+    pub result: String,
+    /// Gas consumed
+    pub gas_used: u64,
+    /// Execution logs
+    #[serde(default)]
+    pub logs: Vec<String>,
+}
+
+// ===== Genesis Types =====
+
+/// Genesis configuration
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct GenesisConfig {
+    pub chain_id: String,
+    pub chain_version: String,
+    pub genesis_time: String,
+    pub features: GenesisFeatures,
+    pub pqc: PqcConfig,
+    #[serde(default)]
+    pub validators: Vec<ValidatorInfo>,
+}
+
+/// Genesis feature flags
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct GenesisFeatures {
+    #[serde(default)]
+    pub staking: bool,
+    #[serde(default)]
+    pub governance: bool,
+    #[serde(default)]
+    pub bridge: bool,
+    #[serde(default)]
+    pub smart_contracts: bool,
+    #[serde(default)]
+    pub wasm_contracts: bool,
+    #[serde(default)]
+    pub ai_oracle: bool,
+}
+
+/// Post-Quantum Cryptography configuration
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct PqcConfig {
+    pub enabled: bool,
+    pub algorithms: PqcAlgorithms,
+}
+
+/// PQC algorithm configuration
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct PqcAlgorithms {
+    #[serde(default)]
+    pub signature: Vec<String>,
+    #[serde(default)]
+    pub encryption: Vec<String>,
+}
+
+/// Validator information
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ValidatorInfo {
+    pub address: String,
+    pub moniker: String,
+    pub voting_power: String,
+}
+
+/// Peer information
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct PeerInfo {
+    pub id: String,
+    pub address: String,
 }
 
 #[cfg(test)]

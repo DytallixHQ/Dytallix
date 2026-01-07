@@ -286,8 +286,126 @@ try {
 
 See the [examples/](./examples/) directory for complete working examples:
 
-- \`e2e_test.js\` - Full end-to-end test against live testnet
+- \`e2e_test.js\` - Full end-to-end test against live testnet- `deploy_contract.js` - Smart contract deployment example
 
+---
+
+## Running a Node
+
+### Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/DytallixHQ/Dytallix.git
+cd Dytallix
+
+# Build and run with Docker
+docker build -t dytallix-node .
+docker run -p 3030:3030 -p 30303:30303 dytallix-node
+```
+
+### From Source
+
+```bash
+# Prerequisites: Rust 1.82+, clang, protobuf-compiler
+
+# Clone and build with contracts feature
+git clone https://github.com/DytallixHQ/Dytallix.git
+cd Dytallix/dytallix-fast-launch/node
+cargo build --release --features "contracts,metrics"
+
+# Run
+./target/release/dytallix-fast-node
+```
+
+### Connect to Testnet
+
+```bash
+# Set environment variables
+export DYT_CHAIN_ID=dytallix-testnet-1
+export DYT_RPC_PORT=3030
+export DYT_SEED_NODE=178.156.187.81:30303
+
+./target/release/dytallix-fast-node
+```
+
+### Genesis Configuration
+
+The testnet genesis configuration is available at [genesis.json](../genesis.json). Key parameters:
+
+| Parameter | Value |
+|-----------|-------|
+| Chain ID | `dytallix-testnet-1` |
+| Block Time | 3 seconds |
+| PQC Algorithm | ML-DSA-65 |
+| Contracts | Enabled |
+
+---
+
+## Smart Contracts
+
+Dytallix supports WASM smart contracts with gas metering.
+
+### Deploy a Contract
+
+```typescript
+import { DytallixClient, PQCWallet, initPQC } from '@dytallix/sdk';
+import fs from 'fs';
+
+await initPQC();
+const client = new DytallixClient({ rpcUrl: 'https://dytallix.com/rpc' });
+const wallet = await PQCWallet.generate();
+
+// Read WASM bytecode
+const wasmCode = fs.readFileSync('my_contract.wasm');
+
+// Deploy
+const result = await client.deployContract({
+  code: wasmCode.toString('hex'),
+  deployer: wallet.address,
+  gasLimit: 2_000_000
+});
+
+console.log('Contract deployed at:', result.address);
+console.log('Transaction hash:', result.txHash);
+```
+
+### Call a Contract
+
+```typescript
+const result = await client.callContract({
+  address: 'dyt1contract...',
+  method: 'get_value',
+  args: '',
+  gasLimit: 500_000
+});
+
+console.log('Result:', result.result);
+console.log('Gas used:', result.gasUsed);
+console.log('Logs:', result.logs);
+```
+
+### Query Contract State
+
+```typescript
+const state = await client.getContractState({
+  address: 'dyt1contract...',
+  key: 'counter'
+});
+
+console.log('State value:', state);
+```
+
+### Contract SDK Methods
+
+| Method | Description |
+|--------|-------------|
+| `deployContract(request)` | Deploy WASM bytecode |
+| `callContract(request)` | Execute a contract method |
+| `getContractState(query)` | Read contract storage |
+| `getGenesis()` | Get chain configuration |
+
+---
 ## License
 
 Apache-2.0

@@ -120,6 +120,79 @@ export interface BlocksQuery {
   offset?: number;
 }
 
+// ===== Contract Types =====
+
+export interface ContractDeployRequest {
+  /** WASM bytecode as hex string (with or without 0x prefix) */
+  code: string;
+  /** Deployer address */
+  deployer: string;
+  /** Gas limit for deployment */
+  gasLimit?: number;
+}
+
+export interface ContractDeployResponse {
+  /** Deployed contract address */
+  address: string;
+  /** Transaction hash */
+  txHash: string;
+}
+
+export interface ContractCallRequest {
+  /** Contract address */
+  address: string;
+  /** Method/function name to call */
+  method: string;
+  /** Arguments as hex-encoded bytes */
+  args?: string;
+  /** Gas limit for execution */
+  gasLimit?: number;
+}
+
+export interface ContractCallResponse {
+  /** Return value as hex-encoded bytes */
+  result: string;
+  /** Gas consumed */
+  gasUsed: number;
+  /** Execution logs */
+  logs: string[];
+}
+
+export interface ContractStateQuery {
+  /** Contract address */
+  address: string;
+  /** State key to query */
+  key: string;
+}
+
+// ===== Genesis Types =====
+
+export interface GenesisConfig {
+  chainId: string;
+  chainVersion: string;
+  genesisTime: string;
+  features: {
+    staking: boolean;
+    governance: boolean;
+    bridge: boolean;
+    smartContracts: boolean;
+    wasmContracts: boolean;
+    aiOracle: boolean;
+  };
+  pqc: {
+    enabled: boolean;
+    algorithms: {
+      signature: string[];
+      encryption: string[];
+    };
+  };
+  validators: Array<{
+    address: string;
+    moniker: string;
+    votingPower: string;
+  }>;
+}
+
 /**
  * Dytallix blockchain client for RPC interactions
  * 
@@ -579,5 +652,162 @@ export class DytallixClient {
     } finally {
       clearTimeout(timeoutId);
     }
+  }
+
+  // ===== Contract Methods =====
+
+  /**
+   * Deploy a WASM smart contract
+   * 
+   * @param request - Contract deployment parameters
+   * @returns Deployed contract address and transaction hash
+   * 
+   * @example
+   * ```typescript
+   * const wasmCode = fs.readFileSync('contract.wasm');
+   * const result = await client.deployContract({
+   *   code: wasmCode.toString('hex'),
+   *   deployer: wallet.address,
+   *   gasLimit: 2_000_000
+   * });
+   * console.log('Contract deployed at:', result.address);
+   * ```
+   */
+  async deployContract(request: ContractDeployRequest): Promise<ContractDeployResponse> {
+    const response = await this.request<{ address: string; tx_hash: string }>('/contracts/deploy', {
+      method: 'POST',
+      body: JSON.stringify({
+        code: request.code.startsWith('0x') ? request.code.slice(2) : request.code,
+        deployer: request.deployer,
+        gas_limit: request.gasLimit ?? 1_000_000
+      })
+    });
+
+    return {
+      address: response.address,
+      txHash: response.tx_hash
+    };
+  }
+
+  /**
+   * Call a method on a deployed smart contract
+   * 
+   * @param request - Contract call parameters
+   * @returns Execution result, gas used, and logs
+   * 
+   * @example
+   * ```typescript
+   * const result = await client.callContract({
+   *   address: 'dyt1contract...',
+   *   method: 'get_balance',
+   *   args: '0x...',
+   *   gasLimit: 500_000
+   * });
+   * console.log('Result:', result.result);
+   * ```
+   */
+  async callContract(request: ContractCallRequest): Promise<ContractCallResponse> {
+    const response = await this.request<{ result: string; gas_used: number; logs: string[] }>('/contracts/call', {
+      method: 'POST',
+      body: JSON.stringify({
+        address: request.address,
+        method: request.method,
+        args: request.args ?? '',
+        gas_limit: request.gasLimit ?? 1_000_000
+      })
+    });
+
+    return {
+      result: response.result,
+      gasUsed: response.gas_used,
+      logs: response.logs ?? []
+    };
+  }
+
+  /**
+   * Query contract state by key
+   * 
+   * @param query - Contract address and state key
+   * @returns State value as hex-encoded bytes
+   */
+  async getContractState(query: ContractStateQuery): Promise<string> {
+    const response = await this.request<{ value: string }>(`/contracts/state/${query.address}/${query.key}`);
+    return response.value;
+  }
+
+  // ===== Genesis & Network Info =====
+
+  /**
+   * Get the genesis configuration for this chain
+   * 
+   * Useful for understanding chain parameters, enabled features,
+   * and initial validator set.
+   * 
+   * @returns Parsed genesis configuration
+   */
+  async getGenesis(): Promise<GenesisConfig> {
+    interface RawGenesis {
+      chain_id: string;
+      chain_version: string;
+      genesis_time: string;
+      features: {
+        staking: boolean;
+        governance: boolean;
+        bridge: boolean;
+        smart_contracts: boolean;
+        wasm_contracts: boolean;
+        ai_oracle: boolean;
+      };
+      pqc: {
+        enabled: boolean;
+        algorithms: {
+          signature: string[];
+          encryption: string[];
+        };
+      };
+      validators: Array<{
+        address: string;
+        moniker: string;
+        voting_power: string;
+      }>;
+    }
+
+    const raw = await this.request<RawGenesis>('/genesis');
+
+    return {
+      chainId: raw.chain_id,
+      chainVersion: raw.chain_version,
+      genesisTime: raw.genesis_time,
+      features: {
+        staking: raw.features.staking,
+        governance: raw.features.governance,
+        bridge: raw.features.bridge,
+        smartContracts: raw.features.smart_contracts,
+        wasmContracts: raw.features.wasm_contracts,
+        aiOracle: raw.features.ai_oracle
+      },
+      pqc: raw.pqc,
+      validators: raw.validators.map(v => ({
+        address: v.address,
+        moniker: v.moniker,
+        votingPower: v.voting_power
+      }))
+    };
+  }
+
+  /**
+   * Get list of connected peers
+   * 
+   * @returns Array of peer information
+   */
+  async getPeers(): Promise<Array<{ id: string; address: string }>> {
+    return this.request('/peers');
+  }
+
+  /**
+   * Get chain statistics including emission info
+   */
+  async getStats(): Promise<Record<string, unknown>> {
+    return this.request('/api/stats');
   }
 }

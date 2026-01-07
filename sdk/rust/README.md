@@ -188,7 +188,116 @@ cargo run --example wallet
 
 # Chain status query
 cargo run --example query_status
+
+# End-to-end test against live testnet
+cargo run --example e2e_test
+
+# Contract deployment (requires WASM file)
+cargo run --example deploy_contract path/to/contract.wasm
 ```
+
+---
+
+## Running a Node
+
+### Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/DytallixHQ/Dytallix.git
+cd Dytallix
+
+# Build and run with Docker
+docker build -t dytallix-node .
+docker run -p 3030:3030 -p 30303:30303 dytallix-node
+```
+
+### From Source
+
+```bash
+# Prerequisites: Rust 1.82+, clang, protobuf-compiler
+
+# Clone and build with contracts feature
+git clone https://github.com/DytallixHQ/Dytallix.git
+cd Dytallix/dytallix-fast-launch/node
+cargo build --release --features "contracts,metrics"
+
+# Run
+./target/release/dytallix-fast-node
+```
+
+### Connect to Testnet
+
+```bash
+# Set environment variables
+export DYT_CHAIN_ID=dytallix-testnet-1
+export DYT_RPC_PORT=3030
+export DYT_SEED_NODE=178.156.187.81:30303
+
+./target/release/dytallix-fast-node
+```
+
+---
+
+## Smart Contracts
+
+Dytallix supports WASM smart contracts with gas metering.
+
+### Deploy a Contract
+
+```rust
+use dytallix_sdk::Client;
+use std::fs;
+
+let client = Client::testnet();
+let wasm_bytes = fs::read("my_contract.wasm")?;
+let wasm_hex = hex::encode(&wasm_bytes);
+
+let result = client.deploy_contract(
+    &wasm_hex,
+    "dyt1deployer...",
+    Some(2_000_000)
+).await?;
+
+println!("Contract deployed at: {}", result.address);
+println!("Transaction hash: {}", result.tx_hash);
+```
+
+### Call a Contract
+
+```rust
+let result = client.call_contract(
+    "dyt1contract...",
+    "get_value",
+    None,           // args (hex-encoded)
+    Some(500_000)   // gas limit
+).await?;
+
+println!("Result: {}", result.result);
+println!("Gas used: {}", result.gas_used);
+```
+
+### Query Contract State
+
+```rust
+let state = client.get_contract_state(
+    "dyt1contract...",
+    "counter"
+).await?;
+
+println!("State value: {}", state);
+```
+
+### Contract SDK Methods
+
+| Method | Description |
+|--------|-------------|
+| `deploy_contract()` | Deploy WASM bytecode |
+| `call_contract()` | Execute a contract method |
+| `get_contract_state()` | Read contract storage |
+| `get_genesis()` | Get chain configuration |
+
+---
 
 ## Network Constants
 

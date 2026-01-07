@@ -11,6 +11,7 @@ use anyhow::{anyhow, Result};
 use dytallix_node::wasm::{host_env::HostEnv, WasmEngine};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use wasmtime;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};

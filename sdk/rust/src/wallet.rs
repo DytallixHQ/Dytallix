@@ -4,7 +4,7 @@ use crate::error::{Result, SdkError};
 use pqcrypto_dilithium::dilithium3;
 use pqcrypto_traits::sign::{PublicKey, SecretKey, SignedMessage};
 use sha2::{Digest, Sha256};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::ZeroizeOnDrop;
 use std::path::Path;
 use std::fs;
 

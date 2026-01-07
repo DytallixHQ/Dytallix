@@ -81,7 +81,13 @@ pub async fn contracts_state(
     Extension(ctx): Extension<RpcContext>,
     Path((address, key)): Path<(String, String)>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
-    // This is a placeholder as WasmRuntime doesn't expose state query directly yet
-    // We might need to add a method to WasmRuntime to query state
-    Err(ApiError::NotImplemented("state query not implemented".to_string()))
+    // Query contract state from the WASM runtime
+    match ctx.wasm_runtime.get_contract_state(&address, &key) {
+        Some(value) => Ok(Json(json!({
+            "address": address,
+            "key": key,
+            "value": hex::encode(&value)
+        }))),
+        None => Err(ApiError::NotFound),
+    }
 }
