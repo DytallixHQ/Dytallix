@@ -1,98 +1,205 @@
 # Dytallix
 
-**Post-Quantum Secure Blockchain Platform**
+<div align="center">
 
-Dytallix is a next-generation blockchain platform designed with quantum-resistant cryptography from the ground up, protecting your assets against both current and future threats.
+**Post-Quantum Secure Blockchain**
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![TypeScript SDK](https://img.shields.io/npm/v/@dytallix/sdk.svg?label=TypeScript%20SDK)](https://www.npmjs.com/package/@dytallix/sdk)
+[![Rust SDK](https://img.shields.io/badge/Rust%20SDK-0.1.0-orange)](sdk/rust)
+
+[Website](https://dytallix.com) • [Documentation](https://dytallix.com/resources) • [Discord](https://discord.gg/N8Q4A2KE) • [Twitter](https://x.com/dytallixhq)
+
+</div>
+
+---
+
+## 🔐 Post-Quantum Security
+
+Dytallix implements NIST FIPS 204 (ML-DSA) post-quantum digital signatures, protecting your transactions against both classical and future quantum computer attacks.
+
+## 📦 What's Included
+
+| Directory | Description |
+|-----------|-------------|
+| [`sdk/typescript/`](sdk/typescript) | TypeScript/JavaScript SDK for web & Node.js |
+| [`sdk/rust/`](sdk/rust) | Rust SDK for high-performance applications |
+| [`node/`](node) | Full blockchain node source code |
+| [`cli/`](cli) | Command-line tools |
+| [`contracts/`](contracts) | Example smart contracts |
+| [`docs/`](docs) | Technical documentation |
+
+---
 
 ## 🚀 Quick Start
 
-### Install the SDK
+### TypeScript SDK
 
 ```bash
-npm install @dytallix/sdk
+npm install @dytallix/sdk pqc-wasm
+```
+
+```typescript
+import { DytallixClient, PQCWallet, initPQC } from '@dytallix/sdk';
+
+// Initialize PQC module
+await initPQC();
+
+// Generate quantum-resistant wallet
+const wallet = await PQCWallet.generate();
+console.log('Address:', wallet.address);
+
+// Connect to testnet
+const client = DytallixClient.testnet();
+const status = await client.getStatus();
+console.log('Block height:', status.block_height);
+
+// Request testnet tokens
+const faucet = await client.requestFaucet(wallet.address, ['DGT', 'DRT']);
+console.log('Received:', faucet.dispensed);
+
+// Check balance
+const account = await client.getAccount(wallet.address);
+console.log('DGT:', account.balances.DGT);
+console.log('DRT:', account.balances.DRT);
+```
+
+### Rust SDK
+
+```toml
+# Cargo.toml
+[dependencies]
+dytallix-sdk = { git = "https://github.com/DytallixHQ/Dytallix", branch = "main" }
+tokio = { version = "1", features = ["full"] }
+```
+
+```rust
+use dytallix_sdk::{Wallet, Client};
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // Generate PQC wallet
+    let wallet = Wallet::generate()?;
+    println!("Address: {}", wallet.address());
+
+    // Connect to testnet
+    let client = Client::testnet();
+    let status = client.get_status().await?;
+    println!("Block height: {}", status.block_height);
+
+    // Request tokens & query balance
+    client.request_faucet(wallet.address(), &["DGT", "DRT"]).await?;
+    let account = client.get_account(wallet.address()).await?;
+    println!("DGT: {}", account.dgt_balance());
+    
+    Ok(())
+}
+```
+
+---
+
+## 🔧 Running a Node
+
+### Docker (Recommended)
+
+```bash
+git clone https://github.com/DytallixHQ/Dytallix.git
+cd Dytallix
+docker build -t dytallix-node .
+docker run -p 3030:3030 -p 30303:30303 dytallix-node
+```
+
+### From Source
+
+```bash
+# Prerequisites: Rust 1.82+, clang
+
+cd node
+cargo build --release
+./target/release/dytallix-fast-node
 ```
 
 ### Connect to Testnet
 
-```typescript
-import { DytallixClient } from '@dytallix/sdk';
-
-const client = new DytallixClient({
-  network: 'testnet',
-  rpcUrl: 'https://testnet.dytallix.com/rpc'
-});
-
-// Check connection
-const status = await client.getNetworkStatus();
-console.log('Connected to Dytallix:', status);
-```
-
-## 📦 What's Included
-
-- **[sdk/typescript/](./sdk/typescript)** - TypeScript/JavaScript SDK for interacting with Dytallix
-- **[sdk/rust/](./sdk/rust)** - Rust SDK for high-performance applications
-- **[cli/](./cli)** - Command-line tools for node operations and development
-- **[contracts/](./contracts)** - Example smart contracts (hello-world, counter)
-- **[examples/](./examples)** - Code examples for common use cases
-- **[docs/](./docs)** - Technical documentation
-
-## 🔧 Running a Node
-
 ```bash
-# Install the CLI
-cd cli
-cargo build --release
-
-# Start a testnet node
-./target/release/dytallix-cli node start --network testnet
+export DYT_CHAIN_ID=dytallix-testnet-1
+export DYT_SEED_NODE=178.156.187.81:30303
+./target/release/dytallix-fast-node
 ```
 
-## 📝 Deploy a Smart Contract
+---
 
+## 📝 Smart Contracts
+
+Deploy WASM smart contracts with gas metering:
+
+### TypeScript
 ```typescript
-import { DytallixClient, Contract } from '@dytallix/sdk';
+const wasmHex = Buffer.from(fs.readFileSync('contract.wasm')).toString('hex');
+const result = await client.deployContract(wasmHex, wallet.address);
+console.log('Contract:', result.address);
 
-const client = new DytallixClient({ network: 'testnet' });
-
-// Deploy a contract
-const contract = await client.deployContract({
-  code: contractWasm,
-  args: { initial_value: 0 }
-});
-
-console.log('Contract deployed at:', contract.address);
+// Call contract method
+const response = await client.callContract(result.address, 'get_value');
+console.log('Result:', response.result);
 ```
 
-## 🔐 Post-Quantum Security
+### Rust
+```rust
+let wasm_hex = hex::encode(&std::fs::read("contract.wasm")?);
+let result = client.deploy_contract(&wasm_hex, &wallet.address(), None).await?;
+println!("Contract: {}", result.address);
+```
 
-Dytallix uses CRYSTALS-Dilithium signatures and CRYSTALS-Kyber key exchange, both selected by NIST for post-quantum cryptography standardization. Your transactions are secure against both classical and quantum attacks.
-
-## 📚 Documentation
-
-- [SDK Documentation](./sdk/README.md)
-- [CLI Reference](./cli/README_CLI.md)
-- [API Reference](./docs/API_REFERENCE.md)
-- [Architecture Overview](./docs/ARCHITECTURE.md)
-- [Smart Contracts Guide](./docs/CONTRACTS.md)
+---
 
 ## 🌐 Testnet Resources
 
-- **RPC Endpoint**: `https://dytallix.com/rpc/`
-- **API Endpoint**: `https://dytallix.com/api/`
-- **Explorer**: [https://dytallix.com/build/blockchain](https://dytallix.com/build/blockchain)
-- **Faucet**: [https://dytallix.com/build/faucet](https://dytallix.com/build/faucet)
+| Resource | URL |
+|----------|-----|
+| RPC Endpoint | `https://dytallix.com/api` |
+| Block Explorer | [dytallix.com/build/blockchain](https://dytallix.com/build/blockchain) |
+| Faucet | [dytallix.com/build/faucet](https://dytallix.com/build/faucet) |
+
+---
+
+## 💎 Token Denominations
+
+| Token | Symbol | Description |
+|-------|--------|-------------|
+| DGT | Dytallix Governance Token | Staking & governance |
+| DRT | Dytallix Reward Token | Transaction fees & rewards |
+
+**Conversion:** 1 DGT = 1,000,000 udgt (micro-units)
+
+---
+
+## 📚 Documentation
+
+- [SDK Reference](sdk/README.md)
+- [Node RPC API](node/README_RPC.md)
+- [PQC Implementation](node/PQC_IMPLEMENTATION.md)
+- [Architecture](docs/architecture/)
+- [Smart Contracts Guide](docs/developers/)
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](./sdk/CONTRIBUTING.md) for guidelines.
+We welcome contributions! Please see [CONTRIBUTING.md](sdk/typescript/CONTRIBUTING.md) for guidelines.
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the Apache 2.0 License - see [LICENSE](LICENSE) for details.
 
-## 🔗 Links
+---
 
-- [Website](https://dytallix.com)
-- [Documentation](https://dytallix.com/resources)
-- [Discord](https://discord.gg/N8Q4A2KE)
-- [X](https://x.com/dytallixhq)
+<div align="center">
+
+**Built with ❤️ by the Dytallix Team**
+
+[Website](https://dytallix.com) • [Documentation](https://dytallix.com/resources) • [Discord](https://discord.gg/N8Q4A2KE)
+
+</div>
